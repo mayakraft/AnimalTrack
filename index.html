@@ -21,6 +21,26 @@
         width:500px;
       }
 
+      #dots {
+        position: absolute;
+        bottom: 50px;
+        padding: 0;
+        width:100%;
+        text-align: center;
+        margin-right: 40%;
+        margin-left: 40%;        
+      }
+
+      #imageDiv{
+        position: absolute;
+        bottom: 100px;
+        padding: 0;
+        text-align: center;
+        margin-right: 40%;
+        margin-left: 40%;        
+      }
+
+
       #layer_selector {
         position: absolute;
         top: 20px;
@@ -67,13 +87,12 @@
         <li id="all" class="selected">All</li>
       </ul>
     </div>
-	
-	<div id="dateSlider" ></div>
 
     <!-- include cartodb.js library -->
     <script src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js"></script>
 
     <script>
+    var idNumbers;
       var queries = {}, selectedFilter, mylayers;
       cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
         .done(function(vis, layers) {
@@ -165,22 +184,55 @@
       }
 
       window.onload = main;
+
+      function hoverImage(name){
+
+      }
     </script>
 
-    <!-- time range slider -->
-    	<script src="jquery-ui.js"></script>
-    	<script src="jQAllRangeSliders-min.js"></script>
-    	<script>
-      		$("#dateSlider").dateRangeSlider({
-  				bounds:{
-    			min: new Date(2012, 0, 1),
-    			max: new Date(2012, 11, 31)
-  			},
-  			defaultValues:{
-    			min: new Date(2012, 2, 21),
-    			max: new Date(2012, 8, 21)
- 			 }});
-	    </script>
+    <link rel="stylesheet" href="dots.css" />
+    <style>
+    #dots li a{color:white; opacity:.5;}
+    a:link{text-decoration: none; }
+    a:visited {text-decoration: none; }
+    a:hover{text-decoration: none; }
+    a:active{text-decoration: none;}
+    </style>
+
+    <div id="imageDiv" style="width:200px; height:100px; display:none;">&nbsp;</div>
+
+    <div id="dots">
+      <ul>
+        <li id="1"><a slide-index="0" href="#0" class="active"></a>
+        </li>
+        <li id="2"><a slide-index="1" href="#1"></a>
+        </li>
+        <li id="3"><a slide-index="2" href="#2"></a>
+        </li>
+        <li id="4"><a slide-index="3" href="#3"></a>
+        </li>
+        <li id="5"><a slide-index="4" href="#4"></a>
+        </li>
+        <li id="6"><a slide-index="5" href="#5"></a>
+        </li>
+      </ul>
+    </div>
+
+  <script>
+  $("#dots li").each(function(){
+    $(this).hover(function (e) {
+      idNumber = this.id;
+      // var imgWidth = $('img:first', obj).width();
+      // var imgHeight = $('img:first', obj).height();
+      $("#imageDiv").show();
+      $('#imageDiv').css("background-image", "url(http://raw.githubusercontent.com/robbykraft/AnimalTrack/master/image/"+idNumber+".jpg)");
+
+    }, function (e) {
+      $("#imageDiv").hide();
+    })
+  });
+  </script>
+
 
   </body>
 </html>
