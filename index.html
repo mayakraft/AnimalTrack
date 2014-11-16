@@ -75,6 +75,7 @@
 
     <script>
       var queries = {}, selectedFilter;
+		var mylayers;
       // create layer selector
       function createFilter(layers) {
 
@@ -96,7 +97,6 @@
 
       function layerTwo(subcategory){
         selectedFilter = $('li.selected').attr('id');
-
         queries["all"] = "SELECT * FROM animals";
 
         var sql = new cartodb.SQL({ user: 'seatheanimals' });
@@ -105,22 +105,34 @@
            .done(function(data){
             $('#selector').html("");
             $('#selector').append(
-                $('<li></li>').attr('id', data.rows[i].type).html('◄ BACK')
+                $('<li></li>').attr('id', 'back').html('◄ BACK')
             );
              	// console.log(data);
             for (i in data.rows){
               $('#selector').append(
-                $('<li></li>').attr('id', data.rows[i].type).html(data.rows[i].common_species_name + ' (' + data.rows[i].c+ ')')
+                $('<li></li>').attr('id', data.rows[i].common_species_name).html(data.rows[i].common_species_name + ' (' + data.rows[i].c+ ')')
               );
-      	        queries[data.rows[i].type] = "SELECT common_species_name, count(*) AS c FROM all_animals WHERE common_species_name IS NOT NULL AND type = '"+data.rows[i].type+"' GROUP BY common_species_name ORDER BY c DESC";
+      	        // queries[data.rows[i].type] = "SELECT common_species_name, count(*) AS c FROM all_animals WHERE common_species_name IS NOT NULL AND type = '"+subcategory+"' GROUP BY common_species_name ORDER BY c DESC";
             }
-           })
+            $("li").each(function(){
+           		$(this).click(
+           			function(){ 
+           				var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE common_species_name = '"+$(this).attr('id').replace("'","''")+"')"
+           				console.log(query)
+			            mylayers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+query+") k");
+			            mylayers[1].getSubLayer(1).setSQL(query);
+			            mylayers[2].setSQL(query);
+           			})
+           });
 
+           })
         cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
         .done(function(vis, layers) {
           // layer 0 is the base layer, layer 1 is cartodb layer
           // console.log(layers)
-          createFilter(layers);
+          // createFilter(layers);
+          mylayers = layers;
+
         })
         .error(function(err) {
           console.log(err);
