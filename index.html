@@ -97,9 +97,6 @@
       cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
         .done(function(vis, layers) {
           map = vis.getNativeMap()
-          sql.getBounds("SELECT * FROM animals").done(function(bounds) {
-            map.fitBounds(bounds);
-          });
           // layer 0 is the base layer, layer 1 is cartodb layer
           // console.log(layers)
           // createFilter(layers);
