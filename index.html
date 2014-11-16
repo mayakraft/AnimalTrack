@@ -97,6 +97,9 @@
       cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
         .done(function(vis, layers) {
           map = vis.getNativeMap()
+          sql.getBounds("SELECT * FROM animals").done(function(bounds) {
+            map.fitBounds(bounds);
+          });
           // layer 0 is the base layer, layer 1 is cartodb layer
           // console.log(layers)
           // createFilter(layers);
@@ -146,7 +149,8 @@
            			function(){ 
            				var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE common_species_name = '"+$(this).attr('id').replace("'","''")+"')";
 			            mylayers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+query+") k GROUP BY id");
-			            mylayers[1].getSubLayer(1).setSQL(query);
+                  mylayers[1].getSubLayer(1).setSQL(
+                    "SELECT a.the_geom, a.the_geom_webmercator, a.cartodb_id, a.date, b.image_id_jpg, b.nick_name, b.common_species_name FROM ("+query+") a LEFT JOIN all_animals b ON a.id = b.id ");
 			            mylayers[2].setSQL(query);
                   sql.getBounds(query).done(function(bounds) {
                     map.fitBounds(bounds);
