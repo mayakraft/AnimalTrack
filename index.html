@@ -7,21 +7,19 @@
 	<link rel="stylesheet" href="iThing.css" type="text/css" />
 </head>
 <body>
-	<h1>Gracie the gray seal</h1>
+	<h1>Sea the Animals</h1>
 	<div class="threequarters">
 		<iframe width='100%' height='520' frameborder='0' src='http://seatheanimals.cartodb.com/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/embed_map' allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>
-	</div>
-	<h1>Narrow selection by time</h1>
-   	<span style="display:inline-block; height:100px"></span>
-	<div style="margin-left: auto; margin-right: auto; width:75%;">
-		<div id="slider"></div>
+		<div id="dateSlider"></div>
     	<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
     	<script src="jquery-ui.js"></script>
     	<script src="jquery.mousewheel.min.js"></script>
-    	<script src="jQRangeSlider-min.js"></script>
+    	<script src="jQAllRangeSliders-min.js"></script>
     	<script>
-      		$("#slider").rangeSlider();
+      		// $("#slider").rangeSlider();
+      		$("#dateSlider").dateRangeSlider();
 	    </script>
+	    <h2>narrow selection by time</h2>
     </div>
 	<h1>Gracie the gray seal</h1>
 	<div class="threequarters">
