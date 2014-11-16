@@ -74,9 +74,10 @@
     <script src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js"></script>
 
     <script>
-      var queries = {}, selectedFilter, mylayers;
+      var queries = {}, selectedFilter, mylayers, map, sql;
       cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
         .done(function(vis, layers) {
+          map = vis.getNativeMap()
           // layer 0 is the base layer, layer 1 is cartodb layer
           // console.log(layers)
           // createFilter(layers);
@@ -109,7 +110,6 @@
         selectedFilter = $('li.selected').attr('id');
         queries["all"] = "SELECT * FROM animals";
 
-        var sql = new cartodb.SQL({ user: 'seatheanimals' });
         sql.execute("SELECT common_species_name, count(*) AS c FROM all_animals WHERE common_species_name IS NOT NULL AND type = '"+subcategory+"' GROUP BY common_species_name ORDER BY c DESC")
            .done(function(data){
             $('#selector').html("");
@@ -125,11 +125,13 @@
             $("li").each(function(){
            		$(this).click(
            			function(){ 
-           				var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE common_species_name = '"+$(this).attr('id').replace("'","''")+"')"
-           				console.log(query)
+           				var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE common_species_name = '"+$(this).attr('id').replace("'","''")+"')";
 			            mylayers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+query+") k GROUP BY id");
 			            mylayers[1].getSubLayer(1).setSQL(query);
 			            mylayers[2].setSQL(query);
+                  sql.getBounds(query).done(function(bounds) {
+                    map.fitBounds(bounds);
+                  });
            			})
            });
 
@@ -138,13 +140,13 @@
 
       function main() {
 
+        sql = new cartodb.SQL({ user: 'seatheanimals' });
 
         // get the currently selected style
         selectedFilter = $('li.selected').attr('id');
 
         queries["all"] = "SELECT * FROM animals";
 
-        var sql = new cartodb.SQL({ user: 'seatheanimals' });
         sql.execute("SELECT type, count(*) AS c FROM all_animals WHERE type IS NOT NULL GROUP BY type ORDER BY c DESC")
            .done(function(data){
             for (i in data.rows){
