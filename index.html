@@ -1,17 +1,133 @@
+<!DOCTYPE html>
 <html>
-<head>
-	<title>Whale Net Mapping</title>
-	<style>
-		.threequarters{ margin-left: auto;  margin-right: auto;  width:75%;  }
-	</style>
-	<link rel="stylesheet" href="iThing.css" type="text/css" />
-</head>
-<body>
-	<h1>Sea the Animals</h1>
-	<div class="threequarters">
-		<iframe width='100%' height='520' frameborder='0' src='http://seatheanimals.cartodb.com/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/embed_map' allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>
-		<div id="dateSlider"></div>
-    	<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+  <head>
+    <title>Animals | CartoDB.js</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />
+    <link rel="stylesheet" href="iThing.css" type="text/css" />
+    <style>
+      html, body, #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      #dateSlider {
+        position: absolute;
+        bottom: 50px;
+        right: 20px;
+        padding: 0;
+        width:500px;
+      }
+
+      #layer_selector {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 0;
+      }
+
+      #layer_selector ul {
+        padding: 0; margin: 0;
+        list-style-type: none;
+      }
+
+      #layer_selector li {
+        border-bottom: 1px solid #999;
+        padding: 15px 30px;
+        font-family: "Helvetica", Arial;
+        font-size: 13px;
+        color: #444;
+        cursor: auto;
+      }
+
+      #layer_selector li:hover {
+        background-color: #F0F0F0;
+        cursor: pointer;
+      }
+
+      #layer_selector li.selected {
+        background-color: #EEE;
+      }
+    </style>
+
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.css" />
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.ie.css" />
+    <![endif]-->
+
+    <script type="sql/html" id="sql_template">
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="layer_selector" class="cartodb-infobox">
+      <ul id="selector">
+        <li id="all" class="selected">All</li>
+      </ul>
+    </div>
+	
+	<div id="dateSlider" ></div>
+
+    <!-- include cartodb.js library -->
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js"></script>
+
+    <script>
+      var queries = {}, selectedFilter;
+      // create layer selector
+      function createFilter(layers) {
+
+        var $options = $('#layer_selector li');
+        $options.click(function(e) {
+          // get the area of the selected layer
+          var $li = $(e.target);
+          var query = $li.attr('id');
+          if(selectedFilter != query ){
+            // change the style in the layer to update the map
+            // console.log("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+queries[query]+") k")
+            layers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+queries[query]+") k");
+            layers[1].getSubLayer(1).setSQL(queries[query]);
+            layers[2].setSQL(queries[query]);
+            selectedFilter = query;
+          }
+        });
+      }
+
+      function main() {
+
+
+        // get the currently selected style
+        selectedFilter = $('li.selected').attr('id');
+
+        queries["all"] = "SELECT * FROM animals";
+
+        var sql = new cartodb.SQL({ user: 'seatheanimals' });
+        sql.execute("SELECT type, count(*) AS c FROM all_animals WHERE type IS NOT NULL GROUP BY type ORDER BY c DESC")
+           .done(function(data){
+            for (i in data.rows){
+              $('#selector').append(
+                $('<li></li>').attr('id', data.rows[i].type).html(data.rows[i].type + ' (' + data.rows[i].c+ ')')
+              );
+              queries[data.rows[i].type] = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE type = '"+data.rows[i].type+"')";
+            }
+           })
+
+        cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
+        .done(function(vis, layers) {
+          // layer 0 is the base layer, layer 1 is cartodb layer
+          // console.log(layers)
+          createFilter(layers);
+        })
+        .error(function(err) {
+          console.log(err);
+        });
+      }
+
+      window.onload = main;
+    </script>
+
+    <!-- time range slider -->
     	<script src="jquery-ui.js"></script>
     	<script src="jquery.mousewheel.min.js"></script>
     	<script src="jQAllRangeSliders-min.js"></script>
@@ -26,14 +142,6 @@
     			max: new Date(2012, 8, 21)
  			 }});
 	    </script>
-	    <h2>narrow selection by time</h2>
-    </div>
-   	<span style="display:inline-block; height:100px"></span>
-	<h1>Gracie the gray seal</h1>
-	<div class="threequarters">
-		<iframe width='100%' height='520' frameborder='0' src='http://robby.cartodb.com/viz/839f456a-6dbb-11e4-b5a8-0e9d821ea90d/embed_map' allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>
-	</div>
-   	<span style="display:inline-block; height:100px"></span>
-</body>
+
+  </body>
 </html>
-<!-- http://lwinston.cartodb.com/api/v2/viz/cede2104-66b8-11e4-b7a1-0e4fddd5de28/viz.json -->
