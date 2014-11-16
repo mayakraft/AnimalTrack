@@ -94,6 +94,39 @@
         });
       }
 
+      function layerTwo(subcategory){
+        selectedFilter = $('li.selected').attr('id');
+
+        queries["all"] = "SELECT * FROM animals";
+
+        var sql = new cartodb.SQL({ user: 'seatheanimals' });
+        sql.execute("SELECT common_species_name, count(*) AS c FROM all_animals WHERE common_species_name IS NOT NULL AND type = '"+subcategory+"' GROUP BY common_species_name ORDER BY c DESC")
+        // sql.execute("SELECT type, count(*) AS c FROM all_animals WHERE type IS NOT NULL GROUP BY type ORDER BY c DESC")
+           .done(function(data){
+            $('#selector').html("");
+            $('#selector').append(
+                $('<li></li>').attr('id', data.rows[i].type).html('◄ BACK')
+            );
+             	// console.log(data);
+            for (i in data.rows){
+              $('#selector').append(
+                $('<li></li>').attr('id', data.rows[i].type).html(data.rows[i].common_species_name + ' (' + data.rows[i].c+ ')')
+              );
+      	        queries[data.rows[i].type] = "SELECT common_species_name, count(*) AS c FROM all_animals WHERE common_species_name IS NOT NULL AND type = '"+data.rows[i].type+"' GROUP BY common_species_name ORDER BY c DESC";
+            }
+           })
+
+        cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
+        .done(function(vis, layers) {
+          // layer 0 is the base layer, layer 1 is cartodb layer
+          // console.log(layers)
+          createFilter(layers);
+        })
+        .error(function(err) {
+          console.log(err);
+        });
+      }
+
       function main() {
 
 
@@ -111,13 +144,19 @@
               );
               queries[data.rows[i].type] = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE type = '"+data.rows[i].type+"')";
             }
-           })
+            $("li").each(function(){
+           		$(this).click(
+           			function(){ 
+           				layerTwo(this.id); 
+           			})
+           });
+			});
 
         cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
         .done(function(vis, layers) {
           // layer 0 is the base layer, layer 1 is cartodb layer
           // console.log(layers)
-          createFilter(layers);
+          // createFilter(layers);
         })
         .error(function(err) {
           console.log(err);
