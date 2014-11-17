@@ -23,7 +23,7 @@
 
       #dots {
         position: absolute;
-        bottom: 50px;
+        bottom: 25px;
         padding: 0;
         width:100%;
         text-align: center;
@@ -37,7 +37,9 @@
         padding: 0;
         text-align: center;
         margin-right: 40%;
-        margin-left: 40%;        
+        margin-left: 40%;     
+        background-size: contain;   
+        background-repeat: no-repeat;
       }
 
 
@@ -144,6 +146,7 @@
             $("li").each(function(){
            		$(this).click(
            			function(){ 
+                  loadDots(this.id);
            				var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE common_species_name = '"+$(this).attr('id').replace("'","''")+"')";
 			            mylayers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+query+") k GROUP BY id");
 			            mylayers[1].getSubLayer(1).setSQL(query);
@@ -181,10 +184,33 @@
            			})
            });
 			});
-
-
       }
-
+      function loadDots(subcategory) {
+        sql = new cartodb.SQL({ user: 'seatheanimals' });
+        sql.execute("SELECT id FROM all_animals WHERE common_species_name = '"+subcategory+ "'")
+           .done(function(data){
+            $('#ulDots').html("");
+            for (i in data.rows){
+              $('#ulDots').append(
+                $('<li><a slide-index="0" href="#0"></a></li>').attr('id', data.rows[i].id)
+              );
+            }
+            hookUpDotsAgain();
+        });
+      }
+      function hookUpDotsAgain(){
+        $("#dots li").each(function(){
+          $(this).hover(function (e) {
+          idNumber = this.id;
+          // var imgWidth = $('img:first', obj).width();
+          // var imgHeight = $('img:first', obj).height();
+          $("#imageDiv").show();
+          $('#imageDiv').css("background-image", "url(http://raw.githubusercontent.com/robbykraft/AnimalTrack/master/image/"+idNumber+".jpg)");
+          }, function (e) {
+            $("#imageDiv").hide();
+          })
+        });
+      }
       window.onload = main;
 
       function hoverImage(name){
@@ -200,41 +226,13 @@
     a:hover{text-decoration: none; }
     a:active{text-decoration: none;}
     </style>
-
-    <div id="imageDiv" style="width:200px; height:100px; display:none;">&nbsp;</div>
-
+    
+    <div id="imageDiv" style="width:200px; height:200px; display:none;"></div>
     <div id="dots">
-      <ul>
-        <li id="1"><a slide-index="0" href="#0" class="active"></a>
-        </li>
-        <li id="2"><a slide-index="1" href="#1"></a>
-        </li>
-        <li id="3"><a slide-index="2" href="#2"></a>
-        </li>
-        <li id="4"><a slide-index="3" href="#3"></a>
-        </li>
-        <li id="5"><a slide-index="4" href="#4"></a>
-        </li>
-        <li id="6"><a slide-index="5" href="#5"></a>
-        </li>
+      <ul id="ulDots">
+
       </ul>
     </div>
-
-  <script>
-  $("#dots li").each(function(){
-    $(this).hover(function (e) {
-      idNumber = this.id;
-      // var imgWidth = $('img:first', obj).width();
-      // var imgHeight = $('img:first', obj).height();
-      $("#imageDiv").show();
-      $('#imageDiv').css("background-image", "url(http://raw.githubusercontent.com/robbykraft/AnimalTrack/master/image/"+idNumber+".jpg)");
-
-    }, function (e) {
-      $("#imageDiv").hide();
-    })
-  });
-  </script>
-
 
   </body>
 </html>
