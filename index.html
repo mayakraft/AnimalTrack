@@ -94,7 +94,7 @@
     <script src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js"></script>
 
     <script>
-      var queries = {}, selectedFilter, mylayers, map, sql;
+      var selectedFilter, mylayers, map, sql;
 
       cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
         .done(function(vis, layers) {
@@ -108,28 +108,19 @@
         .error(function(err) {
           console.log(err);
         });
-      // create layer selector
-      function createFilter(layers) {
 
-        var $options = $('#layer_selector li');
-        $options.click(function(e) {
-          // get the area of the selected layer
-          var $li = $(e.target);
-          var query = $li.attr('id');
-          if(selectedFilter != query ){
-            // change the style in the layer to update the map
-            // console.log("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+queries[query]+") k")
-            layers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+queries[query]+") k");
-            layers[1].getSubLayer(1).setSQL(queries[query]);
-            layers[2].setSQL(queries[query]);
-            selectedFilter = query;
-          }
-        });
+
+      function applyQuery(query){
+          mylayers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+query+") k GROUP BY id");
+          mylayers[1].getSubLayer(1).setSQL(
+            "SELECT a.the_geom, a.the_geom_webmercator, a.cartodb_id, a.date, b.image_id_jpg, b.nick_name, b.common_species_name, b.type FROM ("+query+") a LEFT JOIN all_animals b ON a.id = b.id ");
+          mylayers[2].setSQL(query);
+          sql.getBounds(query).done(function(bounds) {
+            map.fitBounds(bounds);
+          });
       }
-
       function layerTwo(subcategory){
         selectedFilter = $('li.selected').attr('id');
-        queries["all"] = "SELECT * FROM animals";
 
         sql.execute("SELECT common_species_name, count(*) AS c FROM all_animals WHERE common_species_name IS NOT NULL AND type = '"+subcategory+"' GROUP BY common_species_name ORDER BY c DESC")
            .done(function(data){
@@ -148,12 +139,7 @@
            			function(){ 
                   loadDots(this.id);
            				var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE common_species_name = '"+$(this).attr('id').replace("'","''")+"')";
-			            mylayers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+query+") k GROUP BY id");
-			            mylayers[1].getSubLayer(1).setSQL(query);
-			            mylayers[2].setSQL(query);
-                  sql.getBounds(query).done(function(bounds) {
-                    map.fitBounds(bounds);
-                  });
+                  applyQuery(query);
            			})
            });
 
@@ -167,19 +153,19 @@
         // get the currently selected style
         selectedFilter = $('li.selected').attr('id');
 
-        queries["all"] = "SELECT * FROM animals";
-
         sql.execute("SELECT type, count(*) AS c FROM all_animals WHERE type IS NOT NULL GROUP BY type ORDER BY c DESC")
            .done(function(data){
             for (i in data.rows){
               $('#selector').append(
                 $('<li></li>').attr('id', data.rows[i].type).html(data.rows[i].type + ' (' + data.rows[i].c+ ')')
               );
-              queries[data.rows[i].type] = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE type = '"+data.rows[i].type+"')";
+
             }
             $("li").each(function(){
            		$(this).click(
            			function(){ 
+                  var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE type = '"+$(this).attr('id').replace("'","''")+"')";
+                  applyQuery(query);
            				layerTwo(this.id); 
            			})
            });
