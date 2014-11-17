@@ -161,6 +161,8 @@
             $("li").each(function(){
            		$(this).click(
            			function(){ 
+                  var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE type = '"+$(this).attr('id').replace("'","''")+"')";
+                  applyQuery(query);
            				layerTwo(this.id); 
            			})
            });
