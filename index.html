@@ -147,7 +147,7 @@
            				var query = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE common_species_name = '"+$(this).attr('id').replace("'","''")+"')";
 			            mylayers[1].getSubLayer(0).setSQL("SELECT ST_MakeLine(the_geom_webmercator) the_geom_webmercator FROM ("+query+") k GROUP BY id");
                   mylayers[1].getSubLayer(1).setSQL(
-                    "SELECT a.the_geom, a.the_geom_webmercator, a.cartodb_id, a.date, b.image_id_jpg, b.nick_name, b.common_species_name FROM ("+query+") a LEFT JOIN all_animals b ON a.id = b.id ");
+                    "SELECT a.the_geom, a.the_geom_webmercator, a.cartodb_id, a.date, b.image_id_jpg, b.nick_name, b.common_species_name, b.type FROM ("+query+") a LEFT JOIN all_animals b ON a.id = b.id ");
 			            mylayers[2].setSQL(query);
                   sql.getBounds(query).done(function(bounds) {
                     map.fitBounds(bounds);
@@ -167,7 +167,7 @@
 
         queries["all"] = "SELECT * FROM animals";
 
-        sql.execute("SELECT type, count(*) AS c FROM all_animals WHERE type IS NOT NULL GROUP BY type ORDER BY c DESC")
+        sql.execute("SELECT type, count(distinct common_species_name) AS c FROM all_animals WHERE type IS NOT NULL GROUP BY type ORDER BY c DESC")
            .done(function(data){
             for (i in data.rows){
               $('#selector').append(
