@@ -92,7 +92,7 @@
     <script src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js"></script>
 
     <script>
-      var queries = {}, selectedFilter, mylayers, map, sql;
+      var selectedFilter, mylayers, map, sql;
 
       cartodb.createVis('map', 'http://seatheanimals.cartodb.com/api/v2/viz/7ee4a392-6dbd-11e4-b416-0e018d66dc29/viz.json')
         .done(function(vis, layers) {
@@ -119,7 +119,6 @@
       }
       function layerTwo(subcategory){
         selectedFilter = $('li.selected').attr('id');
-        queries["all"] = "SELECT * FROM animals";
 
         sql.execute("SELECT common_species_name, count(*) AS c FROM all_animals WHERE common_species_name IS NOT NULL AND type = '"+subcategory+"' GROUP BY common_species_name ORDER BY c DESC")
            .done(function(data){
@@ -151,15 +150,13 @@
         // get the currently selected style
         selectedFilter = $('li.selected').attr('id');
 
-        queries["all"] = "SELECT * FROM animals";
-
         sql.execute("SELECT type, count(*) AS c FROM all_animals WHERE type IS NOT NULL GROUP BY type ORDER BY c DESC")
            .done(function(data){
             for (i in data.rows){
               $('#selector').append(
                 $('<li></li>').attr('id', data.rows[i].type).html(data.rows[i].type + ' (' + data.rows[i].c+ ')')
               );
-              queries[data.rows[i].type] = "SELECT * FROM animals WHERE id IN (SELECT id FROM all_animals WHERE type = '"+data.rows[i].type+"')";
+
             }
             $("li").each(function(){
            		$(this).click(
