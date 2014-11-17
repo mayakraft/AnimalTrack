@@ -178,7 +178,7 @@
             $('#ulDots').html("");
             for (i in data.rows){
               $('#ulDots').append(
-                $('<li><a slide-index="0" href="#0"></a></li>').attr('id', data.rows[i].id)
+                $('<li><a></a></li>').attr('id', data.rows[i].id)
               );
             }
             hookUpDotsAgain();
@@ -199,9 +199,6 @@
       }
       window.onload = main;
 
-      function hoverImage(name){
-
-      }
     </script>
 
     <link rel="stylesheet" href="dots.css" />
